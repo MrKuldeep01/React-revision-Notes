@@ -1,4 +1,4 @@
-# React js Notes with chatGPT [Basic]
+# React js Notes with chatGPT [ Basic Level ☕🚀 ]
 
 #### Kuldeep : 
 
@@ -1617,6 +1617,10 @@ Feel free to ask if you have any further questions or need more clarification!
 
 ---
 
+[Intermediate level](/Intermediate.md)
+[Advanced level](/Advanced.md)
+
+<!-- 
 #### Kuldeep : 
 ```
 great, now next!
@@ -2143,19 +2147,6 @@ This process ensures that the temperature is accurately converted and presented 
 
 Feel free to ask if you have any further questions or need additional clarification!
 
----
-
-Concept is clear but your code making me confused 😕. Move to the next topic please 
-
-
-
----
-
-#### Kuldeep : 
-```
-Partially got it 😁
-```
-
-#### chatGPT :
+--- -->
 
 

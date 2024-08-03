@@ -1,4 +1,6 @@
-# React js Notes with chatGPT [Advanced]
+# React js Notes with chatGPT [ Advanced Level ]
+[Intermediate level](/Intermediate.md)
+[Basic level](/Readme.md)
 
 #### Kuldeep : 
 
