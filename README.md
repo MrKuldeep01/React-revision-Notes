@@ -1617,8 +1617,7 @@ Feel free to ask if you have any further questions or need more clarification!
 
 ---
 
-[Intermediate level](/Intermediate.md)
-[Advanced level](/Advanced.md)
+[Intermediate level](/Intermediate.md)  <br>  [Advanced level](/Advanced.md)
 
 <!-- 
 #### Kuldeep : 

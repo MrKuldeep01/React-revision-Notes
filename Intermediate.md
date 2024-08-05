@@ -1,8 +1,7 @@
 # React js Notes with chatGPT [ Inermediate Level ]
 
 
-[Basic level](/Readme.md)
-[Advanced level](/Advanced.md)
+[Basic level](/Readme.md) <br>  [Advanced level](/Advanced.md)
 
 
 #### Kuldeep : 
@@ -993,7 +992,986 @@ These techniques can help you build efficient and performant React applications.
 #### Kuldeep : 
 
 ```
-Q.
+i think you are losing memory of the indexing wait, let me provide a list of tasks to elobrate one by one.  --> Intermediate
+Hooks
+
+useState
+useEffect
+useContext
+useRef
+useReducer
+Custom hooks
+Context API
+
+Creating and using context
+Context.Provider and Context.Consumer
+useContext hook
+Routing
+
+React Router basics
+Route, Link, NavLink components
+Nested routes
+Programmatic navigation
+State Management
+
+Lifting state up
+Prop drilling and context
+Introduction to Redux
+Redux Toolkit
+React Redux hooks: useDispatch, useSelector
+Side Effects and Data Fetching
+
+Using useEffect for side effects
+Fetching data with fetch or axios
+Handling asynchronous operations
+Performance Optimization
+
+React.memo
+useMemo
+useCallback
+Lazy loading with React.lazy and Suspense
+now choose
+```
+#### chatGPT : 
+Great! Let's continue with the next topic from the intermediate list you provided. Since we've already covered `useState`, `useEffect`, `useContext`, `useRef`, and `useReducer`, let's move on to **Custom Hooks**.
+
+### Custom Hooks
+
+Custom hooks are a mechanism to extract and reuse stateful logic across multiple components. They allow you to encapsulate logic that involves React hooks and share it in a reusable way.
+
+#### Why use Custom Hooks?
+
+- **Reusability**: Share logic between multiple components without duplicating code.
+- **Abstraction**: Encapsulate complex logic into a simple API.
+- **Readability**: Simplify components by moving complex logic to hooks.
+
+#### Creating a Custom Hook
+
+A custom hook is a JavaScript function whose name starts with `use` and can call other hooks.
+
+#### Example: useFetch Hook
+
+Let's create a custom hook for fetching data from an API.
+
+```jsx
+import { useState, useEffect } from 'react';
+
+function useFetch(url) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const result = await response.json();
+        setData(result);
+      } catch (error) {
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [url]);
+
+  return { data, loading, error };
+}
+
+export default useFetch;
+```
+
+#### Using the Custom Hook
+
+You can use the `useFetch` hook in any functional component.
+
+```jsx
+import React from 'react';
+import useFetch from './useFetch';
+
+function App() {
+  const { data, loading, error } = useFetch('https://api.example.com/data');
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  return (
+    <div>
+      <h1>Data:</h1>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+    </div>
+  );
+}
+
+export default App;
+```
+
+### Key Points
+
+1. **Prefix with "use"**: Custom hooks should start with "use" to follow the convention and to allow React to recognize them as hooks.
+2. **Can use other hooks**: Custom hooks can call other hooks like `useState`, `useEffect`, etc.
+3. **Return values**: Custom hooks can return any values, including objects, arrays, or functions.
+
+### More Examples of Custom Hooks
+
+#### useLocalStorage Hook
+
+A custom hook to manage state synchronized with `localStorage`.
+
+```jsx
+import { useState } from 'react';
+
+function useLocalStorage(key, initialValue) {
+  const [storedValue, setStoredValue] = useState(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      console.error(error);
+      return initialValue;
+    }
+  });
+
+  const setValue = (value) => {
+    try {
+      const valueToStore = value instanceof Function ? value(storedValue) : value;
+      setStoredValue(valueToStore);
+      window.localStorage.setItem(key, JSON.stringify(valueToStore));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return [storedValue, setValue];
+}
+
+export default useLocalStorage;
+```
+
+#### useWindowSize Hook
+
+A custom hook to get the current window size.
+
+```jsx
+import { useState, useEffect } from 'react';
+
+function useWindowSize() {
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return windowSize;
+}
+
+export default useWindowSize;
+```
+
+### Summary
+
+- **Custom Hooks**: Functions that encapsulate reusable stateful logic.
+- **Naming Convention**: Should start with "use" to follow React's convention.
+- **Flexibility**: Can call other hooks and return any values.
+
+Custom hooks are a powerful tool to reuse logic and simplify your React components. If you have any questions or need further examples, feel free to ask!
+
+---
+
+Which topic would you like to explore next? We can move on to **Context API** or any other topic you prefer.
+
+---
+
+
+#### Kuldeep : 
+
+```
+elaborate this user Auth example in details
+```
+#### chatGPT : 
+
+Absolutely! Let's dive deeper into the user authentication example using Context API. We'll cover the following steps:
+
+1. Creating the authentication context.
+2. Setting up the context provider.
+3. Using the context in various components.
+4. Handling user login and logout actions.
+
+### Step 1: Creating the Authentication Context
+
+First, we'll create an `AuthContext.js` file to define the authentication context. This context will provide the current user state and functions to login and logout.
+
+```jsx
+// AuthContext.js
+import React, { createContext, useState } from 'react';
+
+// Create the context
+const AuthContext = createContext();
+
+// Create the provider component
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  const login = (newUser) => {
+    setUser(newUser);
+  };
+
+  const logout = () => {
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export default AuthContext;
+```
+
+### Step 2: Setting Up the Context Provider
+
+Next, we'll use the `AuthProvider` component to wrap our application. This ensures that the authentication state and functions are available throughout the entire app.
+
+```jsx
+// App.js
+import React from 'react';
+import { AuthProvider } from './AuthContext';
+import HomePage from './HomePage';
+import ProfilePage from './ProfilePage';
+
+function App() {
+  return (
+    <AuthProvider>
+      <HomePage />
+      <ProfilePage />
+    </AuthProvider>
+  );
+}
+
+export default App;
+```
+
+### Step 3: Using the Context in Various Components
+
+Now, we'll use the authentication context in different components to handle login and display user information.
+
+#### HomePage Component
+
+In the `HomePage` component, we'll provide a button to simulate user login. When the button is clicked, it calls the `login` function from the context to set the user state.
+
+```jsx
+// HomePage.js
+import React, { useContext } from 'react';
+import AuthContext from './AuthContext';
+
+function HomePage() {
+  const { login } = useContext(AuthContext);
+
+  const handleLogin = () => {
+    // Simulating user login
+    login({ name: 'John Doe', email: 'john@example.com' });
+  };
+
+  return (
+    <div>
+      <h1>Home Page</h1>
+      <button onClick={handleLogin}>Login</button>
+    </div>
+  );
+}
+
+export default HomePage;
+```
+
+#### ProfilePage Component
+
+In the `ProfilePage` component, we'll display the user's information if they are logged in. If not, we'll prompt them to log in. We also provide a logout button to log out the user.
+
+```jsx
+// ProfilePage.js
+import React, { useContext } from 'react';
+import AuthContext from './AuthContext';
+
+function ProfilePage() {
+  const { user, logout } = useContext(AuthContext);
+
+  if (!user) {
+    return <p>Please login to see your profile.</p>;
+  }
+
+  return (
+    <div>
+      <h1>Profile Page</h1>
+      <p>Name: {user.name}</p>
+      <p>Email: {user.email}</p>
+      <button onClick={logout}>Logout</button>
+    </div>
+  );
+}
+
+export default ProfilePage;
+```
+
+### Step 4: Handling User Login and Logout Actions
+
+In the `AuthContext.js` file, we defined the `login` and `logout` functions. The `login` function sets the user state with the provided user data, while the `logout` function clears the user state.
+
+```jsx
+// AuthContext.js
+import React, { createContext, useState } from 'react';
+
+// Create the context
+const AuthContext = createContext();
+
+// Create the provider component
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  const login = (newUser) => {
+    setUser(newUser);
+  };
+
+  const logout = () => {
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export default AuthContext;
+```
+
+### Putting It All Together
+
+The complete code for the example is as follows:
+
+#### AuthContext.js
+
+```jsx
+import React, { createContext, useState } from 'react';
+
+const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  const login = (newUser) => {
+    setUser(newUser);
+  };
+
+  const logout = () => {
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export default AuthContext;
+```
+
+#### App.js
+
+```jsx
+import React from 'react';
+import { AuthProvider } from './AuthContext';
+import HomePage from './HomePage';
+import ProfilePage from './ProfilePage';
+
+function App() {
+  return (
+    <AuthProvider>
+      <HomePage />
+      <ProfilePage />
+    </AuthProvider>
+  );
+}
+
+export default App;
+```
+
+#### HomePage.js
+
+```jsx
+import React, { useContext } from 'react';
+import AuthContext from './AuthContext';
+
+function HomePage() {
+  const { login } = useContext(AuthContext);
+
+  const handleLogin = () => {
+    login({ name: 'John Doe', email: 'john@example.com' });
+  };
+
+  return (
+    <div>
+      <h1>Home Page</h1>
+      <button onClick={handleLogin}>Login</button>
+    </div>
+  );
+}
+
+export default HomePage;
+```
+
+#### ProfilePage.js
+
+```jsx
+import React, { useContext } from 'react';
+import AuthContext from './AuthContext';
+
+function ProfilePage() {
+  const { user, logout } = useContext(AuthContext);
+
+  if (!user) {
+    return <p>Please login to see your profile.</p>;
+  }
+
+  return (
+    <div>
+      <h1>Profile Page</h1>
+      <p>Name: {user.name}</p>
+      <p>Email: {user.email}</p>
+      <button onClick={logout}>Logout</button>
+    </div>
+  );
+}
+
+export default ProfilePage;
+```
+
+### Summary
+
+- **Creating Context**: We created `AuthContext` to hold user authentication state.
+- **Provider**: `AuthProvider` component provides the context to child components.
+- **useContext**: We used `useContext` hook in `HomePage` and `ProfilePage` to access the context.
+- **Login and Logout**: `login` and `logout` functions manage user state.
+
+This example demonstrates how to use Context API to handle user authentication in a React application. If you have any questions or need further clarification, feel free to ask!
+
+---
+
+
+#### Kuldeep : 
+
+```
+next topic please
+```
+#### chatGPT : 
+
+Sure, let's move on to **Routing** with React Router.
+
+### Routing
+
+React Router is a standard library for routing in React. It enables the navigation among views of various components in a React application, allows changing the browser URL, and keeps the UI in sync with the URL.
+
+#### Key Concepts
+
+1. **React Router Basics**
+2. **Route, Link, NavLink Components**
+3. **Nested Routes**
+4. **Programmatic Navigation**
+
+### 1. React Router Basics
+
+First, you need to install the `react-router-dom` package:
+
+```sh
+npm install react-router-dom
+```
+
+Next, set up a basic router in your application.
+
+#### Example
+
+```jsx
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import Home from './Home';
+import About from './About';
+
+function App() {
+  return (
+    <Router>
+      <Switch>
+        <Route exact path="/" component={Home} />
+        <Route path="/about" component={About} />
+      </Switch>
+    </Router>
+  );
+}
+
+export default App;
+```
+
+### 2. Route, Link, NavLink Components
+
+- **Route**: Used to define a route.
+- **Link**: Used to create links to different routes.
+- **NavLink**: Similar to `Link`, but adds styling to the active link.
+
+#### Example
+
+```jsx
+// Home.js
+import React from 'react';
+
+function Home() {
+  return <h2>Home Page</h2>;
+}
+
+export default Home;
+
+// About.js
+import React from 'react';
+
+function About() {
+  return <h2>About Page</h2>;
+}
+
+export default About;
+
+// Navigation.js
+import React from 'react';
+import { Link, NavLink } from 'react-router-dom';
+
+function Navigation() {
+  return (
+    <nav>
+      <ul>
+        <li>
+          <NavLink exact to="/" activeClassName="active">
+            Home
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/about" activeClassName="active">
+            About
+          </NavLink>
+        </li>
+      </ul>
+    </nav>
+  );
+}
+
+export default Navigation;
+
+// App.js
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import Home from './Home';
+import About from './About';
+import Navigation from './Navigation';
+
+function App() {
+  return (
+    <Router>
+      <Navigation />
+      <Switch>
+        <Route exact path="/" component={Home} />
+        <Route path="/about" component={About} />
+      </Switch>
+    </Router>
+  );
+}
+
+export default App;
+```
+
+### 3. Nested Routes
+
+You can have nested routes within your application. This allows you to define routes that are rendered within other routes.
+
+#### Example
+
+```jsx
+// Topics.js
+import React from 'react';
+import { Route, Link, useRouteMatch } from 'react-router-dom';
+import Topic from './Topic';
+
+function Topics() {
+  let match = useRouteMatch();
+
+  return (
+    <div>
+      <h2>Topics</h2>
+      <ul>
+        <li>
+          <Link to={`${match.url}/components`}>Components</Link>
+        </li>
+        <li>
+          <Link to={`${match.url}/props-v-state`}>Props v. State</Link>
+        </li>
+      </ul>
+
+      <Route path={`${match.path}/:topicId`}>
+        <Topic />
+      </Route>
+      <Route exact path={match.path}>
+        <h3>Please select a topic.</h3>
+      </Route>
+    </div>
+  );
+}
+
+export default Topics;
+
+// Topic.js
+import React from 'react';
+import { useParams } from 'react-router-dom';
+
+function Topic() {
+  let { topicId } = useParams();
+  return <h3>Requested topic ID: {topicId}</h3>;
+}
+
+export default Topic;
+
+// App.js
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import Home from './Home';
+import About from './About';
+import Topics from './Topics';
+import Navigation from './Navigation';
+
+function App() {
+  return (
+    <Router>
+      <Navigation />
+      <Switch>
+        <Route exact path="/" component={Home} />
+        <Route path="/about" component={About} />
+        <Route path="/topics" component={Topics} />
+      </Switch>
+    </Router>
+  );
+}
+
+export default App;
+```
+
+### 4. Programmatic Navigation
+
+React Router allows you to navigate programmatically using the `useHistory` hook.
+
+#### Example
+
+```jsx
+// Home.js
+import React from 'react';
+import { useHistory } from 'react-router-dom';
+
+function Home() {
+  let history = useHistory();
+
+  const handleClick = () => {
+    history.push('/about');
+  };
+
+  return (
+    <div>
+      <h2>Home Page</h2>
+      <button onClick={handleClick}>Go to About</button>
+    </div>
+  );
+}
+
+export default Home;
+```
+
+### Summary
+
+- **React Router Basics**: Setting up routes using `BrowserRouter`, `Route`, and `Switch`.
+- **Route, Link, NavLink Components**: Defining routes and creating navigation links.
+- **Nested Routes**: Handling nested routes within your application.
+- **Programmatic Navigation**: Navigating programmatically using `useHistory`.
+
+React Router is essential for building single-page applications with multiple views. It helps manage navigation and URL changes in a seamless and declarative way.
+
+Would you like to explore any specific aspect of React Router further, or shall we move on to the next topic in the list?
+
+---
+
+
+#### Kuldeep : 
+
+```
+move on
+```
+#### chatGPT : 
+
+### State Management
+
+State management is crucial for maintaining and sharing state across different components in a React application. Let's dive into various techniques and tools for state management.
+
+1. **Lifting State Up**
+2. **Prop Drilling and Context**
+3. **Introduction to Redux**
+4. **Redux Toolkit**
+5. **React Redux Hooks: `useDispatch`, `useSelector`**
+
+#### 1. Lifting State Up
+
+Lifting state up is a technique in React where you move the state to the closest common ancestor of the components that need to share it. This way, both components can access and modify the shared state through props.
+
+##### Example
+
+```jsx
+import React, { useState } from 'react';
+
+function App() {
+  const [sharedState, setSharedState] = useState('');
+
+  return (
+    <div>
+      <InputComponent sharedState={sharedState} setSharedState={setSharedState} />
+      <DisplayComponent sharedState={sharedState} />
+    </div>
+  );
+}
+
+function InputComponent({ sharedState, setSharedState }) {
+  return (
+    <input
+      type="text"
+      value={sharedState}
+      onChange={(e) => setSharedState(e.target.value)}
+    />
+  );
+}
+
+function DisplayComponent({ sharedState }) {
+  return <p>{sharedState}</p>;
+}
+
+export default App;
+```
+
+#### 2. Prop Drilling and Context
+
+**Prop drilling** is passing down props through multiple levels of components. This can lead to code that's hard to maintain. To avoid prop drilling, you can use the **Context API**.
+
+##### Example Using Context API
+
+```jsx
+import React, { createContext, useContext, useState } from 'react';
+
+const MyContext = createContext();
+
+function App() {
+  const [sharedState, setSharedState] = useState('');
+
+  return (
+    <MyContext.Provider value={{ sharedState, setSharedState }}>
+      <InputComponent />
+      <DisplayComponent />
+    </MyContext.Provider>
+  );
+}
+
+function InputComponent() {
+  const { sharedState, setSharedState } = useContext(MyContext);
+  return (
+    <input
+      type="text"
+      value={sharedState}
+      onChange={(e) => setSharedState(e.target.value)}
+    />
+  );
+}
+
+function DisplayComponent() {
+  const { sharedState } = useContext(MyContext);
+  return <p>{sharedState}</p>;
+}
+
+export default App;
+```
+
+#### 3. Introduction to Redux
+
+**Redux** is a popular state management library for JavaScript apps. It provides a centralized store for state and a predictable way to manage state changes through actions and reducers.
+
+##### Basic Redux Flow
+
+1. **Store**: Holds the state of your application.
+2. **Actions**: Objects that describe what happened.
+3. **Reducers**: Functions that return the next state based on the current state and action.
+
+##### Example
+
+```jsx
+// actions.js
+export const increment = () => ({
+  type: 'INCREMENT',
+});
+
+export const decrement = () => ({
+  type: 'DECREMENT',
+});
+
+// reducer.js
+const initialState = {
+  count: 0,
+};
+
+export const counterReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case 'INCREMENT':
+      return { ...state, count: state.count + 1 };
+    case 'DECREMENT':
+      return { ...state, count: state.count - 1 };
+    default:
+      return state;
+  }
+};
+
+// store.js
+import { createStore } from 'redux';
+import { counterReducer } from './reducer';
+
+const store = createStore(counterReducer);
+
+export default store;
+
+// App.js
+import React from 'react';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import store from './store';
+import { increment, decrement } from './actions';
+
+function Counter() {
+  const count = useSelector((state) => state.count);
+  const dispatch = useDispatch();
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => dispatch(increment())}>Increment</button>
+      <button onClick={() => dispatch(decrement())}>Decrement</button>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Provider store={store}>
+      <Counter />
+    </Provider>
+  );
+}
+
+export default App;
+```
+
+#### 4. Redux Toolkit
+
+**Redux Toolkit** is the official, recommended way to write Redux logic. It provides useful tools and abstractions to make Redux development easier.
+
+##### Example Using Redux Toolkit
+
+```jsx
+// store.js
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { count: 0 },
+  reducers: {
+    increment: (state) => {
+      state.count += 1;
+    },
+    decrement: (state) => {
+      state.count -= 1;
+    },
+  },
+});
+
+export const { increment, decrement } = counterSlice.actions;
+export default configureStore({
+  reducer: counterSlice.reducer,
+});
+
+// App.js
+import React from 'react';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import store, { increment, decrement } from './store';
+
+function Counter() {
+  const count = useSelector((state) => state.count);
+  const dispatch = useDispatch();
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => dispatch(increment())}>Increment</button>
+      <button onClick={() => dispatch(decrement())}>Decrement</button>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Provider store={store}>
+      <Counter />
+    </Provider>
+  );
+}
+
+export default App;
+```
+
+#### 5. React Redux Hooks: `useDispatch`, `useSelector`
+
+- **useDispatch**: Hook to access the dispatch function.
+- **useSelector**: Hook to access the Redux state.
+
+These hooks were used in the examples above.
+
+### Summary
+
+- **Lifting State Up**: Share state between components by moving it to the nearest common ancestor.
+- **Prop Drilling and Context**: Use Context API to avoid prop drilling.
+- **Introduction to Redux**: Manage state with actions, reducers, and a centralized store.
+- **Redux Toolkit**: Simplify Redux development with Redux Toolkit.
+- **React Redux Hooks**: Use `useDispatch` and `useSelector` for interacting with the Redux store.
+
+Would you like to dive deeper into any of these concepts, or shall we move on to the next topic?
+
+---
+
+
+#### Kuldeep : 
+
+```
+
 ```
 #### chatGPT : 
 Ans.
@@ -1004,6 +1982,4 @@ Ans.
 
 
 
-[Basic level](/Readme.md)
-
-[Advanced level](/Advanced.md)
+[Basic level](/Readme.md) <br>  [Advanced level](/Advanced.md)

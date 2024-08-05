@@ -1,6 +1,5 @@
 # React js Notes with chatGPT [ Advanced Level ]
-[Intermediate level](/Intermediate.md)
-[Basic level](/Readme.md)
+[Intermediate level](/Intermediate.md) <br>  [Basic level](/Readme.md)
 
 #### Kuldeep : 
 
